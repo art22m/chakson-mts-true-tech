@@ -290,7 +290,7 @@ func (sm *SmartMover) refreshCellState() {
 	}
 
 	if time.Since(sm.lastMovementTime) < time.Duration(sm.config.robot.SensorsDelayMs)*time.Millisecond {
-		time.Sleep(time.Duration(sm.config.robot.SensorsDelayMs) * time.Millisecond)
+		time.Sleep(time.Duration(sm.config.robot.SensorsDelayMs)*time.Millisecond - time.Since(sm.lastMovementTime))
 	}
 
 	sm.cellState = sm.getSensor()
