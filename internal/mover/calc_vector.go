@@ -54,7 +54,7 @@ func calcVector(walls maze.Wall, state *CellResp, targetX int, targetY int) (rot
 				(mouseWidth/2)/math.Cos(angle) + cornerSize/2.0
 	} else if walls.Contains(maze.R) {
 		fmt.Println("RIGHT WALL USED")
-		diagonalX = wallSize + cornerSize -
+		diagonalX = wallSize + cornerSize/2.0 -
 			((state.Laser.Right * math.Cos(angle)) +
 				sideFromAxis*((mouseLen/2)-fromFrontSideSensorsShift)*math.Sin(angle) +
 				(mouseWidth/2)/math.Cos(angle))
