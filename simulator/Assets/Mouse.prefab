@@ -617,15 +617,15 @@ MonoBehaviour:
   backwardAbsErrorMean: 0
   backwardAbsErrorStd: 0
   rightErrorMean: 0
-  rightErrorStd: 0.05
+  rightErrorStd: 0
   rightAbsErrorMean: 0
   rightAbsErrorStd: 0
   leftErrorMean: 0
-  leftErrorStd: 0.05
+  leftErrorStd: 0
   leftAbsErrorMean: 0
   leftAbsErrorStd: 0
   yawAbsErrorStd: 0
-  northYawReading: 0
+  northYawReading: 40
   forwardErrorSeed: 1
   forwardAbsErrorSeed: 2
   backwardErrorSeed: 3

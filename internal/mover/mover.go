@@ -23,6 +23,8 @@ type Mover interface {
 	Rotate()
 
 	CellState(d maze.Direction) Cell
+
+	Reset()
 }
 
 type Cell struct {

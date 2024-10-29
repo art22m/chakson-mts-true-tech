@@ -1,7 +1,6 @@
 package mover
 
 import (
-	"fmt"
 	"math"
 	"time"
 
@@ -49,9 +48,21 @@ func NewSmartMover(logger *logrus.Entry, sensorsIP, motorsIP string, id string) 
 	}
 
 	sm.refreshCellState()
-	sm.facingAngle = int(sm.cellState.Imu.Yaw)
+	sm.zeroAngle = int(sm.cellState.Imu.Yaw)
 
 	return sm
+}
+
+func (sm *SmartMover) Reset() {
+	sm.zeroAngle = 0
+	sm.state = stateDefault
+	sm.cellState = nil
+	sm.cellStateValid = false
+	sm.lastMovementTime = time.Now()
+	sm.facingAngle = 0
+
+	sm.refreshCellState()
+	sm.zeroAngle = int(sm.cellState.Imu.Yaw)
 }
 
 func (sm *SmartMover) Left() {
@@ -127,7 +138,7 @@ func (sm *SmartMover) forward(distance int) {
 	if sm.state == stateDefault {
 		sm.move("forward", sm.getCalibrated(distance, sm.config.calibration.ForwardRatio))
 		sm.onMovement()
-		sm.fixFacingDirection()
+		sm.fixFacingDirection(0)
 		return
 	}
 
@@ -147,14 +158,20 @@ func (sm *SmartMover) forward(distance int) {
 		sm.facingAngle = (sm.facingAngle + 270) % 360
 	}
 
+	angleBefore := int(sm.cellState.Imu.Yaw+360-float64(sm.zeroAngle)) % 360
 	angle, dist := sm.getFacingCorrectionAndDistance(targetX, targetY)
-	fmt.Println("!!!", angle, dist)
 	if angle > 0 {
 		sm.move("right", sm.getCalibrated(angle, sm.config.calibration.TurnRightRatio))
 	} else {
 		sm.move("left", sm.getCalibrated(-angle, sm.config.calibration.TurnLeftRatio))
 	}
 	sm.onMovement()
+
+	angleDiff := (int(angleBefore) + angle + 360) % 90
+	if angleDiff > 45 {
+		angleDiff -= 90
+	}
+	sm.fixFacingDirection(angleDiff)
 
 	sm.state = stateDefault
 	sm.forward(dist)
@@ -164,7 +181,7 @@ func (sm *SmartMover) backward(distance int) {
 	if sm.state == stateDefault {
 		sm.move("backward", sm.getCalibrated(distance, sm.config.calibration.BackwardRatio))
 		sm.onMovement()
-		sm.fixFacingDirection()
+		sm.fixFacingDirection(0)
 		return
 	}
 
@@ -216,16 +233,13 @@ func (sm *SmartMover) CellState(d maze.Direction) Cell {
 func (sm *SmartMover) getFacingCorrectionAndDistance(targetX, targetY int) (int, int) {
 	sm.refreshCellState()
 
-	fmt.Println("!!!", targetX, targetY)
-	fmt.Println("!!!", float64(int(sm.cellState.Imu.Yaw-float64(sm.zeroAngle)+360)%360))
-
 	return calcVector(sm.cellState.ToCell(maze.Up).Wall, &CellResp{
 		Laser: sm.cellState.Laser,
 		Imu: struct {
 			Roll  float64 "json:\"roll\""
 			Pitch float64 "json:\"pitch\""
 			Yaw   float64 "json:\"yaw\""
-		}{0, 0, float64(int(sm.cellState.Imu.Yaw-float64(sm.zeroAngle)+360) % 360)},
+		}{0, 0, float64((int(sm.cellState.Imu.Yaw) + 360 - sm.zeroAngle) % 360)},
 	}, targetX, targetY)
 }
 
@@ -234,18 +248,18 @@ func (sm *SmartMover) onMovement() {
 	sm.cellStateValid = false
 }
 
-func (sm *SmartMover) fixFacingDirection() {
+func (sm *SmartMover) fixFacingDirection(angleDiff int) {
 	sm.refreshCellState()
 
-	fmt.Println("!!! FFD", sm.cellState.Imu.Yaw, sm.facingAngle)
 	currentRotation := (int(sm.cellState.Imu.Yaw) + 360 - sm.zeroAngle) % 360
-	diff := (sm.facingAngle - currentRotation)
+	requiredAngle := (sm.facingAngle + angleDiff + 360) % 360
+	diff := (requiredAngle - currentRotation)
 	if diff > 180 {
 		diff -= 360
 	} else if diff < -180 {
 		diff += 360
 	}
-	fmt.Println("!!! FIX FACING DIRECTION", diff)
+
 	absDiff := int(math.Abs(float64(diff)))
 	if absDiff > sm.config.robot.MaxDerivationFromAxis {
 		if diff >= sm.config.calibration.MinTurn {
@@ -265,7 +279,7 @@ func (sm *SmartMover) fixFacingDirection() {
 		}
 
 		sm.onMovement()
-		sm.fixFacingDirection()
+		sm.fixFacingDirection(angleDiff)
 	}
 }
 
