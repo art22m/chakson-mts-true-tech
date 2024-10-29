@@ -1,6 +1,6 @@
 {
     "sensors_delay_ms": 1000,
     "movement_delay_ms": 1000,
-    "max_derivation_from_axis": 5,
+    "max_derivation_from_axis": 6,
     "cell_size": 180
 }
