@@ -1,7 +1,6 @@
 package mover
 
 import (
-	"fmt"
 	"math"
 
 	"jackson/internal/maze"
@@ -47,30 +46,23 @@ func calcVector(walls maze.Wall, state *CellResp, targetX int, targetY int) (rot
 
 	// xDiagonal calculation
 	if walls.Contains(maze.L) {
-		fmt.Println("LEFT WALL USED")
 		diagonalX =
 			(state.Laser.Left * math.Cos(angle)) -
 				sideFromAxis*((mouseLen/2)-fromFrontSideSensorsShift)*math.Sin(angle) +
-				(mouseWidth/2)/math.Cos(angle) + cornerSize/2.0
+				(mouseWidth/2)*math.Cos(angle) + cornerSize/2.0
 	} else if walls.Contains(maze.R) {
-		fmt.Println("RIGHT WALL USED")
 		diagonalX = wallSize + cornerSize/2.0 -
 			((state.Laser.Right * math.Cos(angle)) +
 				sideFromAxis*((mouseLen/2)-fromFrontSideSensorsShift)*math.Sin(angle) +
-				(mouseWidth/2)/math.Cos(angle))
+				(mouseWidth/2)*math.Cos(angle))
 	}
 
 	// yDiagonal calculation
 	if walls.Contains(maze.D) {
-		fmt.Println("DOWN WALL USED")
-		fmt.Println(state.Laser.Back, mouseLen/2.0, fromCenterToBackSensor, angle)
 		diagonalY = (state.Laser.Back+fromCenterToBackSensor)*math.Cos(angle) + cornerSize/2.0
 	} else if walls.Contains(maze.U) {
-		fmt.Println("UP WALL USED")
 		diagonalY = wallSize + cornerSize/2.0 - (state.Laser.Front+fromCenterToFrontSensor)*math.Cos(angle)
 	}
-
-	fmt.Println("!!! DIAGONALS", diagonalX, diagonalY)
 
 	// calc distance as sqrt( (x_d - x_t)^2 + (y_d - y_t)^2 )
 	distance := math.Sqrt((diagonalX-float64(targetX))*(diagonalX-float64(targetX)) + (diagonalY-float64(targetY))*(diagonalY-float64(targetY)))
