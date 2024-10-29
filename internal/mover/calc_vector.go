@@ -63,11 +63,11 @@ func calcVector(walls maze.Wall, state *CellResp, targetX int, targetY int) (rot
 	// yDiagonal calculation
 	if walls.Contains(maze.D) {
 		fmt.Println("DOWN WALL USED")
-		fmt.Println(state.Laser.Back, mouseLen/2, fromCenterToBackSensor, angle)
-		diagonalY = (state.Laser.Back+mouseLen/2-fromCenterToBackSensor)*math.Cos(angle) + cornerSize/2.0
+		fmt.Println(state.Laser.Back, mouseLen/2.0, fromCenterToBackSensor, angle)
+		diagonalY = (state.Laser.Back+fromCenterToBackSensor)*math.Cos(angle) + cornerSize/2.0
 	} else if walls.Contains(maze.U) {
 		fmt.Println("UP WALL USED")
-		diagonalY = wallSize + cornerSize/2.0 - (state.Laser.Front+mouseLen/2-fromCenterToFrontSensor)*math.Cos(angle)
+		diagonalY = wallSize + cornerSize/2.0 - (state.Laser.Front+fromCenterToFrontSensor)*math.Cos(angle)
 	}
 
 	fmt.Println("!!! DIAGONALS", diagonalX, diagonalY)
