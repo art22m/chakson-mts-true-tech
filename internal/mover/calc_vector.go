@@ -13,7 +13,8 @@ func fromDegToRad(angle float64) float64 {
 
 func calcVector(walls maze.Wall, state *CellResp, targetX int, targetY int) (rotate int, forward int) {
 	// cell size
-	cellSize := 168.0
+	wallSize := 168.0
+	cornerSize := 12.0
 
 	// sensor shift inside mouse
 	fromCenterToFrontSensor, fromCenterToBackSensor := 20.0, 20.0
@@ -50,26 +51,24 @@ func calcVector(walls maze.Wall, state *CellResp, targetX int, targetY int) (rot
 		diagonalX =
 			(state.Laser.Left * math.Cos(angle)) -
 				sideFromAxis*((mouseLen/2)-fromFrontSideSensorsShift)*math.Sin(angle) +
-				(mouseWidth/2)/math.Cos(angle)
+				(mouseWidth/2)/math.Cos(angle) + cornerSize/2.0
 	} else if walls.Contains(maze.R) {
 		fmt.Println("RIGHT WALL USED")
-		diagonalX = cellSize -
+		diagonalX = wallSize + cornerSize -
 			((state.Laser.Right * math.Cos(angle)) +
 				sideFromAxis*((mouseLen/2)-fromFrontSideSensorsShift)*math.Sin(angle) +
 				(mouseWidth/2)/math.Cos(angle))
 	}
-	diagonalX += 6
 
 	// yDiagonal calculation
 	if walls.Contains(maze.D) {
 		fmt.Println("DOWN WALL USED")
 		fmt.Println(state.Laser.Back, mouseLen/2, fromCenterToBackSensor, angle)
-		diagonalY = (state.Laser.Back + mouseLen/2 - fromCenterToBackSensor) * math.Cos(angle)
+		diagonalY = (state.Laser.Back+mouseLen/2-fromCenterToBackSensor)*math.Cos(angle) + cornerSize/2.0
 	} else if walls.Contains(maze.U) {
 		fmt.Println("UP WALL USED")
-		diagonalY = cellSize - (state.Laser.Front+mouseLen/2-fromCenterToFrontSensor)*math.Cos(angle)
+		diagonalY = wallSize + cornerSize/2.0 - (state.Laser.Front+mouseLen/2-fromCenterToFrontSensor)*math.Cos(angle)
 	}
-	diagonalY += 6
 
 	fmt.Println("!!! DIAGONALS", diagonalX, diagonalY)
 
