@@ -333,18 +333,18 @@ func (sm *SmartMover) Calibrate() {
 	config.Turn180Ratio = float32(int(sm.cellState.Imu.Yaw-yawBefore+360)%360) / 180.0
 
 	config.MinTurn = 60
-	for i := 10; i < 100; i++ {
-		sm.refreshCellState()
-		yawBefore = sm.cellState.Imu.Yaw
-		sm.move("right", i)
-		sm.onMovement()
-		sm.refreshCellState()
-		if int(sm.cellState.Imu.Yaw-yawBefore+360)%360 > i*2/3 {
-			config.MinTurn = i + 10
-			fmt.Println("!!! MT", config.MinTurn)
-			break
-		}
-	}
+	// for i := 10; i < 100; i++ {
+	// 	sm.refreshCellState()
+	// 	yawBefore = sm.cellState.Imu.Yaw
+	// 	sm.move("right", i)
+	// 	sm.onMovement()
+	// 	sm.refreshCellState()
+	// 	if int(sm.cellState.Imu.Yaw-yawBefore+360)%360 > i*2/3 {
+	// 		config.MinTurn = i + 10
+	// 		fmt.Println("!!! MT", config.MinTurn)
+	// 		break
+	// 	}
+	// }
 
 	sm.config.calibration.ForwardRatio = 1
 	sm.config.calibration.BackwardRatio = 1
