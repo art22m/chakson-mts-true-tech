@@ -1,6 +1,7 @@
 package mover
 
 import (
+	"fmt"
 	"math"
 	"time"
 
@@ -174,7 +175,7 @@ func (sm *SmartMover) forward(distance int) {
 	sm.fixFacingDirection(angleDiff)
 
 	sm.state = stateDefault
-	sm.forward(dist)
+	sm.forward(int(float64(dist) * (float64(distance) / 180.0)))
 }
 
 func (sm *SmartMover) backward(distance int) {
@@ -298,4 +299,77 @@ func (sm *SmartMover) refreshCellState() {
 
 func (sm *SmartMover) getCalibrated(value int, calibration float32) int {
 	return int(math.Round(float64(value) * float64(calibration)))
+}
+
+func (sm *SmartMover) Calibrate() {
+	config := SmartMoverCalibrationConfig{}
+
+	sm.config.calibration = SmartMoverCalibrationConfig{}
+	sm.config.calibration.MinTurn = 90
+
+	sm.refreshCellState()
+	yawBefore := sm.cellState.Imu.Yaw
+	sm.move("right", 90)
+	sm.onMovement()
+	sm.refreshCellState()
+	config.TurnRightRatio = float32(int(sm.cellState.Imu.Yaw-yawBefore+360)%360) / 90.0
+	fmt.Println("!!! TRR", config.TurnRightRatio)
+	sm.config.calibration.TurnRightRatio = config.TurnRightRatio
+
+	sm.refreshCellState()
+	yawBefore = sm.cellState.Imu.Yaw
+	sm.move("left", 90)
+	sm.onMovement()
+	sm.refreshCellState()
+	config.TurnLeftRatio = float32(int(yawBefore-sm.cellState.Imu.Yaw+360)%360) / 90.0
+	fmt.Println("!!! TLL", config.TurnLeftRatio)
+	sm.config.calibration.TurnLeftRatio = config.TurnLeftRatio
+
+	sm.refreshCellState()
+	yawBefore = sm.cellState.Imu.Yaw
+	sm.move("right", 180)
+	sm.onMovement()
+	sm.refreshCellState()
+	config.Turn180Ratio = float32(int(sm.cellState.Imu.Yaw-yawBefore+360)%360) / 180.0
+
+	config.MinTurn = 60
+	for i := 10; i < 100; i++ {
+		sm.refreshCellState()
+		yawBefore = sm.cellState.Imu.Yaw
+		sm.move("right", i)
+		sm.onMovement()
+		sm.refreshCellState()
+		if int(sm.cellState.Imu.Yaw-yawBefore+360)%360 > i*2/3 {
+			config.MinTurn = i + 10
+			fmt.Println("!!! MT", config.MinTurn)
+			break
+		}
+	}
+
+	sm.config.calibration.ForwardRatio = 1
+	sm.config.calibration.BackwardRatio = 1
+
+	sm.fixFacingDirection(0)
+	sm.Right()
+	sm.forward(1)
+	sm.refreshCellState()
+	backBefore := sm.cellState.Laser.Back
+	fmt.Println(backBefore)
+	sm.forward(120)
+	sm.refreshCellState()
+	backAfter := sm.cellState.Laser.Back
+	fmt.Println(backAfter)
+	fmt.Println("!!!", backAfter-backBefore)
+	config.ForwardRatio = (float32(backAfter) - float32(backBefore)) / 120.0
+	fmt.Println("!!! FWR", config.ForwardRatio)
+
+	sm.fixFacingDirection(0)
+	sm.refreshCellState()
+	backBefore = sm.cellState.Laser.Back
+	sm.backward(100)
+	sm.refreshCellState()
+	backAfter = sm.cellState.Laser.Back
+	config.BackwardRatio = (float32(backBefore) - float32(backAfter)) / 120.0
+
+	saveCalibrationConfig(config)
 }

@@ -609,14 +609,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isExact: 0
   forwardErrorMean: 0
-  forwardErrorStd: 0.1
-  forwardAbsErrorMean: 0
+  forwardErrorStd: 0
+  forwardAbsErrorMean: 20
   forwardAbsErrorStd: 0
   backwardErrorMean: 0
   backwardErrorStd: 0.1
   backwardAbsErrorMean: 0
   backwardAbsErrorStd: 0
-  rightErrorMean: 0
+  rightErrorMean: 0.2
   rightErrorStd: 0
   rightAbsErrorMean: 0
   rightAbsErrorStd: 0

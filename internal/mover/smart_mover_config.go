@@ -52,6 +52,20 @@ func loadCalibrationConfig() SmartMoverCalibrationConfig {
 	return config
 }
 
+func saveCalibrationConfig(config SmartMoverCalibrationConfig) {
+	configFile, err := os.OpenFile(calibrationConfigPath, os.O_WRONLY, 0x666)
+	defer configFile.Close()
+	if err != nil {
+		panic(err)
+	}
+
+	encoder := json.NewEncoder(configFile)
+	err = encoder.Encode(config)
+	if err != nil {
+		panic(err)
+	}
+}
+
 type RobotConfig struct {
 	// min delay between /move call and subsequent api calls
 	SensorsDelayMs  int `json:"sensors_delay_ms"`
