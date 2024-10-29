@@ -21,9 +21,9 @@ func init() {
 }
 
 const (
-	sensorsIP = "192.168.68.202"
+	sensorsIP = "192.168.68.112"
 	motorsIP  = sensorsIP
-	robotID   = "7536AF961D784A53"
+	robotID   = "3547AF16067F6053"
 )
 
 func main() {
