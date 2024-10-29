@@ -1,6 +1,7 @@
 package mover
 
 import (
+	"fmt"
 	"math"
 
 	"jackson/internal/maze"
@@ -41,27 +42,36 @@ func calcVector(walls maze.Wall, state *CellResp, targetX int, targetY int) (rot
 	}
 	angle = fromDegToRad(angle)
 
-	diagonalX, diagonalY := -1.0, -1.0
+	diagonalX, diagonalY := 90.0, 90.0
 
 	// xDiagonal calculation
 	if walls.Contains(maze.L) {
+		fmt.Println("LEFT WALL USED")
 		diagonalX =
 			(state.Laser.Left * math.Cos(angle)) -
 				sideFromAxis*((mouseLen/2)-fromFrontSideSensorsShift)*math.Sin(angle) +
 				(mouseWidth/2)/math.Cos(angle)
 	} else if walls.Contains(maze.R) {
+		fmt.Println("RIGHT WALL USED")
 		diagonalX = cellSize -
 			((state.Laser.Right * math.Cos(angle)) +
 				sideFromAxis*((mouseLen/2)-fromFrontSideSensorsShift)*math.Sin(angle) +
 				(mouseWidth/2)/math.Cos(angle))
 	}
+	diagonalX += 6
 
 	// yDiagonal calculation
 	if walls.Contains(maze.D) {
+		fmt.Println("DOWN WALL USED")
+		fmt.Println(state.Laser.Back, mouseLen/2, fromCenterToBackSensor, angle)
 		diagonalY = (state.Laser.Back + mouseLen/2 - fromCenterToBackSensor) * math.Cos(angle)
 	} else if walls.Contains(maze.U) {
-		diagonalY = cellSize - (state.Laser.Back+mouseLen/2-fromCenterToFrontSensor)*math.Cos(angle)
+		fmt.Println("UP WALL USED")
+		diagonalY = cellSize - (state.Laser.Front+mouseLen/2-fromCenterToFrontSensor)*math.Cos(angle)
 	}
+	diagonalY += 6
+
+	fmt.Println("!!! DIAGONALS", diagonalX, diagonalY)
 
 	// calc distance as sqrt( (x_d - x_t)^2 + (y_d - y_t)^2 )
 	distance := math.Sqrt((diagonalX-float64(targetX))*(diagonalX-float64(targetX)) + (diagonalY-float64(targetY))*(diagonalY-float64(targetY)))
@@ -69,5 +79,12 @@ func calcVector(walls maze.Wall, state *CellResp, targetX int, targetY int) (rot
 	// angle
 	theta := math.Atan2(float64(targetY)-diagonalY, float64(targetX)-diagonalX)
 	phi := math.Pi/2.0 - theta - sideFromAxis*angle
-	return int(phi * (180.0 / math.Pi)), int(distance)
+	fixedPhi := int(phi * (180.0 / math.Pi))
+	if fixedPhi > 180 {
+		fixedPhi -= 360
+	}
+	if fixedPhi < -180 {
+		fixedPhi += 360
+	}
+	return fixedPhi, int(distance)
 }
